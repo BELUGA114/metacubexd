@@ -24,7 +24,7 @@ A modern, beautiful, and fully-featured web dashboard for [Mihomo](https://githu
 > release and is **not** endorsed by the upstream maintainers.
 >
 > **What it ships:** only the static web dashboard (the hosted-panel form),
-> published as a `compressed-dist.tgz` asset on this repository's releases.
+> published as a `compressed-dist.zip` asset on this repository's releases.
 >
 > **What it does not ship:** the upstream desktop application, the
 > `ghcr.io/metacubex/*` Docker images, the Homebrew cask, and the hosted
@@ -38,13 +38,13 @@ A modern, beautiful, and fully-featured web dashboard for [Mihomo](https://githu
 
 ## ⚡ Quick start
 
-Download `compressed-dist.tgz` from the
+Download `compressed-dist.zip` from the
 [latest release](https://github.com/BELUGA114/metacubexd/releases/latest) and
 extract it somewhere mihomo can read:
 
 ```shell
 mkdir -p /etc/mihomo/ui
-tar xzf compressed-dist.tgz -C /etc/mihomo/ui
+unzip -q compressed-dist.zip -d /etc/mihomo/ui
 ```
 
 Then enable the external controller and point `external-ui` at that directory in
@@ -199,7 +199,7 @@ pnpm lint
 ```
 
 The release workflow builds with `NUXT_APP_BASE_URL='./'` so the output works
-from any path, then attaches `compressed-dist.tgz` to a GitHub release. To
+from any path, then attaches `compressed-dist.zip` to a GitHub release. To
 reproduce that locally:
 
 ```shell
@@ -238,7 +238,7 @@ and upstream history is preserved in this repository's git log and
 
 **This fork's changes.** Modifications made in this repository are released under
 the same MIT License. Redistributing this fork — as source, as the built static
-output, or as the `compressed-dist.tgz` release asset — **must retain the
+output, or as the `compressed-dist.zip` release asset — **must retain the
 upstream copyright notice and the MIT permission notice**, exactly as the license
 requires. Do not strip [LICENSE](./LICENSE) from a redistributed build.
 

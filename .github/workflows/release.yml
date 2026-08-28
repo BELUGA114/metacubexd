@@ -63,11 +63,12 @@ jobs:
         run: NUXT_APP_BASE_URL='./' pnpm --filter @metacubexd/ui generate
 
       - name: compress dist
-        run: tar czvf compressed-dist.tgz -C packages/ui/.output/public .
+        run: zip -qr "$GITHUB_WORKSPACE/compressed-dist.zip" .
+        working-directory: packages/ui/.output/public
 
       - name: attach github release artifacts
         uses: softprops/action-gh-release@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: compressed-dist.tgz
+          files: compressed-dist.zip
           tag_name: ${{ needs.release-please.outputs.tag_name }}
