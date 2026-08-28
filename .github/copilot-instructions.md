@@ -95,7 +95,8 @@ pnpm lint       # runs available lint scripts; UI only and auto-fixes
 ```
 
 The release workflow builds with `NUXT_APP_BASE_URL='./'` so the static output
-works from any path, then attaches `compressed-dist.zip` to a GitHub release.
+works from any path, then attaches `metacubexd-gh-pages.zip` to a GitHub
+release.
 
 ### Package checks
 
