@@ -18,7 +18,7 @@ an issue that may already be fixed.
 Do not disclose a suspected vulnerability in a public GitHub issue,
 discussion, pull request, commit, or other public channel.
 
-Use [GitHub private vulnerability reporting](https://github.com/MetaCubeX/metacubexd/security/advisories/new).
+Use [GitHub private vulnerability reporting](https://github.com/BELUGA114/metacubexd/security/advisories/new).
 Include enough information for maintainers to reproduce and assess the issue:
 
 - The affected version, release tag, or commit.
@@ -37,4 +37,4 @@ allow time for investigation and coordinate disclosure timing with the
 maintainers.
 
 Non-security bugs can be reported through the public
-[issue tracker](https://github.com/MetaCubeX/metacubexd/issues).
+[issue tracker](https://github.com/BELUGA114/metacubexd/issues).

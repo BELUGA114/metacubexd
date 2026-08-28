@@ -1,68 +1,54 @@
-# Copilot Instructions for metacubexd
+# Copilot Instructions for this fork
 
-metacubexd is the official dashboard and managed runtime for the Mihomo proxy
-kernel. Keep changes inside the owning workspace and preserve the boundary
-between Mihomo's Clash API and metacubexd's Control API.
+This is a self-maintained fork of [MetaCubeX/metacubexd](https://github.com/MetaCubeX/metacubexd)
+that keeps only the dashboard (hosted-panel) form. The static UI connects
+directly to a user-managed Mihomo through its Clash API. Preserve the boundary
+between Mihomo's Clash API and the (upstream) Control API surface.
 
 ## Read First
 
-- [CONTEXT.md](../CONTEXT.md) defines the project's domain language.
+- [CONTEXT.md](../CONTEXT.md) defines the project's domain language. It still
+  describes the upstream desktop and all-in-one-server forms, which this fork
+  does not build.
 - [packages/ui/PRODUCT.md](../packages/ui/PRODUCT.md) defines the product and its
   users.
 - [packages/ui/DESIGN.md](../packages/ui/DESIGN.md) defines the UI design system.
-- [packages/agent/MANUAL.md](../packages/agent/MANUAL.md) contains real-kernel
-  smoke tests that are intentionally outside CI.
-- [README.md](../README.md) documents supported deployment forms.
+- [README.md](../README.md) documents what this fork ships.
 
 ## Monorepo Map
 
-This is a pnpm 10 workspace with four workspaces:
+This is a pnpm 10 workspace with two workspaces:
 
-| Workspace        | Responsibility                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------- |
-| `packages/ui`    | Nuxt 4/Vue 3 dashboard shared by every runtime form                                                       |
-| `packages/agent` | Framework-neutral Control API, profile store, kernel supervisor, scheduler, and shared types              |
-| `apps/server`    | Nitro all-in-one server that serves the UI and mounts the agent                                           |
-| `apps/desktop`   | Electron shell, local control server, OS integration, privileged TUN helper, and bundled kernel packaging |
+| Workspace                | Responsibility                                        |
+| ------------------------ | ----------------------------------------------------- |
+| `packages/ui`            | Nuxt 4/Vue 3 dashboard and static panel output        |
+| `packages/config-editor` | Monaco-based profile editor consumed by `packages/ui` |
 
-Do not move host-specific behavior into `packages/ui`. Put reusable lifecycle,
-profile, and Control API behavior in `packages/agent`; keep Docker/Nitro wiring in
-`apps/server` and Electron/OS wiring in `apps/desktop`.
+The upstream `packages/agent`, `apps/server`, and `apps/desktop` workspaces were
+removed from this fork along with the Docker, desktop, and Homebrew distribution
+pipelines. Do not reintroduce host-specific behavior into `packages/ui`.
 
-## Runtime Forms
+## Runtime Form
 
-There are three runtime forms:
-
-1. **Hosted panel**: the static UI connects directly to a user-managed Mihomo.
-   There is no Control Agent, so agent-only features remain hidden. The
-   standalone panel Docker image is another distribution of this form.
-2. **Desktop app**: Electron serves the bundled UI from a loopback control
-   server, runs a local Control Agent, and supervises a bundled Mihomo. The
-   preload bridge injects the per-launch Control and Clash endpoints.
-3. **All-in-one server**: Nitro serves the UI and `/api/control` on the control
-   port and supervises the bundled Mihomo in the same container. The Clash API
-   and mixed proxy remain separate ports.
-
-Default server ports are `8080` for UI + Control API, `9090` for the Clash API,
-and `7890` for the mixed proxy. Desktop ports are selected from free loopback
-ports at startup; never hard-code them in UI code.
+There is one runtime form: the static UI connects directly to a user-managed
+Mihomo. There is no Control Agent, so the UI's agent-only features stay hidden
+through capability gating. Mihomo's `external-controller` defaults to port
+`9090` and its mixed proxy to `7890`; never hard-code endpoints in UI code.
 
 ## API Boundary
 
 - **Clash API** is Mihomo's `external-controller` HTTP/WebSocket surface. It owns
   proxies, proxy groups, traffic, connections, rules, configs, version, and live
   Clash log data. UI access is centered on `packages/ui/composables/useApi.ts`,
-  `useWebSocket.ts`, and the endpoint store.
-- **Control API** is metacubexd's `/api/control/**` surface. It owns kernel
-  lifecycle and subprocess logs, profiles, runtime config, subscriptions,
-  kernel/Geo asset management, WebDAV backup, System Proxy, and TUN. UI access
-  goes through `packages/ui/composables/useControlApi.ts`; features are gated by
-  the agent's advertised capabilities.
+  `useWebSocket.ts`, and the endpoint store. This is the only backend this fork
+  talks to in practice.
+- **Control API** is the upstream `/api/control/**` surface owned by the removed
+  agent. Its client code remains in `packages/ui/composables/useControlApi.ts`
+  and stays inert because no agent advertises the capabilities. Keep it
+  capability-gated rather than assuming it is reachable.
 
-Do not send Clash API traffic through the Control API. In server mode the UI
-talks directly to the published Clash API port because Nitro does not proxy the
-required WebSocket streams. Do not confuse Clash WebSocket logs with the
-agent's kernel-process SSE logs.
+Do not send Clash API traffic through the Control API, and do not confuse Clash
+WebSocket logs with the agent's kernel-process SSE logs.
 
 ## UI Stack and Conventions
 
@@ -95,29 +81,21 @@ TypeScript locale modules.
 
 ## Commands
 
-Run commands from the repository root unless noted.
-
-### Root scripts
+Run commands from the repository root.
 
 ```bash
-pnpm install       # install the workspace
-pnpm dev           # alias for dev:ui; pure-panel Nuxt development
-pnpm dev:ui        # Nuxt UI development server
-pnpm dev:server    # generate the UI, then start Nitro development
-pnpm dev:desktop   # fetch Mihomo and run Nuxt + Electron with renderer HMR
-pnpm build:ui      # nuxt generate -> packages/ui/.output/public
-pnpm build:server  # build the Nitro/agent workspace only
-pnpm build:desktop # electron-vite build only; does not package installers
-pnpm build         # build:ui, then build:server
-pnpm generate      # build:ui, then copy packages/ui/.output to root .output
-pnpm typecheck     # run workspace typecheck scripts
-pnpm lint          # runs available lint scripts; currently UI only and auto-fixes
+pnpm install    # install the workspace
+pnpm dev        # alias for dev:ui; Nuxt development server
+pnpm dev:ui     # Nuxt development server
+pnpm build:ui   # nuxt generate -> packages/ui/.output/public
+pnpm build      # alias for build:ui
+pnpm generate   # build:ui, then copy packages/ui/.output to root .output
+pnpm typecheck  # run workspace typecheck scripts
+pnpm lint       # runs available lint scripts; UI only and auto-fixes
 ```
 
-Desktop installers require the additional renderer generation/copy, kernel
-staging, and `electron-builder` steps shown in `.github/workflows/release.yml`.
-The package-level `pnpm --filter @metacubexd/desktop package` script only invokes
-`electron-builder`; it assumes those prerequisites already exist.
+The release workflow builds with `NUXT_APP_BASE_URL='./'` so the static output
+works from any path, then attaches `compressed-dist.tgz` to a GitHub release.
 
 ### Package checks
 
@@ -125,45 +103,27 @@ The package-level `pnpm --filter @metacubexd/desktop package` script only invoke
 pnpm --filter @metacubexd/ui test:unit
 pnpm --filter @metacubexd/ui test:e2e
 pnpm --filter @metacubexd/ui typecheck
-pnpm --filter @metacubexd/agent test
-pnpm --filter @metacubexd/agent typecheck
-pnpm --filter @metacubexd/server test
-pnpm --filter @metacubexd/server typecheck
-pnpm --filter @metacubexd/desktop test
-pnpm --filter @metacubexd/desktop typecheck
 ```
 
-Prefer a targeted Vitest invocation while iterating, then run the owning
-workspace's full test and typecheck scripts before handoff.
+Prefer a targeted Vitest invocation while iterating, then run the full test and
+typecheck scripts before handoff.
 
 ## Test Locations
 
-- UI unit specs live beside their areas under `**/__tests__/**/*.spec.ts`; UI
-  browser-flow specs live in `packages/ui/e2e/`.
-- Agent tests live in `packages/agent/src/**/*.test.ts` and use injected process,
-  filesystem, fetch, and timer seams instead of a real kernel.
-- Server tests live under `apps/server/**/__tests__/`.
-- Desktop tests live under `apps/desktop/src/**/__tests__/` and must not perform
-  real elevation or OS changes.
-
-Add regression coverage in the workspace that owns the behavior. Use
-`packages/agent/MANUAL.md` only when real Mihomo or network behavior must be
-verified outside the deterministic test suite.
+UI unit specs live beside their areas under `**/__tests__/**/*.spec.ts`; UI
+browser-flow specs live in `packages/ui/e2e/`. Add regression coverage next to
+the behavior it covers.
 
 ## Editing and Quality Rules
 
 - Preserve strict TypeScript types and existing dependency-injection seams.
-- Keep Control API route and UI contract changes synchronized.
-- Route profile and kernel state changes through the agent/controller rather
-  than mutating them from a view.
+- Keep the UI's Control API client capability-gated; do not make agent-only
+  features unconditional.
 - `pnpm lint` invokes ESLint with `--fix`; inspect resulting changes and do not
   run it casually across unrelated work.
-- Do not hand-edit generated output: `.nuxt/`, `.nitro/`, `.output/`,
-  `packages/ui/.output/`, `apps/server/.output/`, `apps/desktop/out/`,
-  `apps/desktop/renderer/`, or `apps/desktop/dist/`.
-- Do not hand-edit downloaded kernel artifacts in `apps/desktop/resources/`
-  (`mihomo`, `mihomo.exe`, `wintun.dll`, or `.mihomo-target`). The tracked
-  `default-config.yaml` is source and may be edited intentionally.
-- Do not edit `CHANGELOG.md`; release-please owns it.
+- Do not hand-edit generated output: `.nuxt/`, `.output/`, or
+  `packages/ui/.output/`.
+- Do not edit `CHANGELOG.md`; release-please owns it. Entries above this fork's
+  divergence point describe upstream history.
 - Do not edit `pnpm-lock.yaml` manually; regenerate it through pnpm when a
   dependency change is intentional.
