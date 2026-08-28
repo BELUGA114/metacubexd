@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.275.1](https://github.com/BELUGA114/metacubexd/compare/v1.275.0...v1.275.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* name the release asset metacubexd-gh-pages.zip ([7b305da](https://github.com/BELUGA114/metacubexd/commit/7b305da1693eee1ec4bffe9eb76e0073b5062603))
+
 ## [1.275.0](https://github.com/BELUGA114/metacubexd/compare/v1.274.0...v1.275.0) (2026-08-28)
 
 
