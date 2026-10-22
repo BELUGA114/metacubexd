@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           cache: pnpm
-          node-version: latest
+          node-version-file: .node-version
 
       - name: install dependencies
         run: pnpm install
