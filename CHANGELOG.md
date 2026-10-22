@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.275.2](https://github.com/BELUGA114/metacubexd/compare/v1.275.1...v1.275.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* update Node.js version to 24.22.1 ([0166c80](https://github.com/BELUGA114/metacubexd/commit/0166c80d28796a6b6d5472ed9965c8d822f314a9))
+
 ## [1.275.1](https://github.com/BELUGA114/metacubexd/compare/v1.275.0...v1.275.1) (2026-08-28)
 
 
