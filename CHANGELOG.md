@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.276.0](https://github.com/BELUGA114/metacubexd/compare/v1.275.2...v1.276.0) (2026-11-18)
+
+
+### Features
+
+* **ui:** add saved group search and resilient IP lookup ([5c66e40](https://github.com/BELUGA114/metacubexd/commit/5c66e401c77ac1a4f36df9bb48bf46d62d4dd2a5))
+
+
+### Bug Fixes
+
+* **ui:** port upstream connection and TUN fixes ([ecffd09](https://github.com/BELUGA114/metacubexd/commit/ecffd098b0be35ab71f6c2bd5c64cd432bc2c6be))
+
 ## [1.275.2](https://github.com/BELUGA114/metacubexd/compare/v1.275.1...v1.275.2) (2026-10-22)
 
 
