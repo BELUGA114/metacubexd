@@ -51,6 +51,10 @@ pnpm --filter @metacubexd/ui test:unit
 pnpm --filter @metacubexd/ui test:e2e
 ```
 
+After generating the release output with `NUXT_APP_BASE_URL='./'`, run
+`pnpm --filter @metacubexd/ui test:static` to verify the actual static files at
+both `/` and `/ui/xd/`. The check requires Playwright's Chromium binary.
+
 `pnpm lint` runs the UI linter with `--fix`; inspect its changes before staging
 them. End-to-end tests require Playwright's Chromium binary:
 

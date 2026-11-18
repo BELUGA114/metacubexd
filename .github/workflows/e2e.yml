@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6.0.10
+      - uses: pnpm/action-setup@v6.1.1
 
       - uses: actions/setup-node@v7
         with:
@@ -46,3 +46,9 @@ jobs:
 
       - name: run e2e tests
         run: pnpm --filter @metacubexd/ui test:e2e
+
+      - name: generate static release artifact
+        run: NUXT_APP_BASE_URL='./' pnpm --filter @metacubexd/ui generate
+
+      - name: verify static release at root and subdirectory
+        run: pnpm --filter @metacubexd/ui test:static

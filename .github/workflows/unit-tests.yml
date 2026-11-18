@@ -28,15 +28,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6.0.10
+      - uses: pnpm/action-setup@v6.1.1
 
       - uses: actions/setup-node@v7
         with:
           cache: pnpm
-          node-version: lts/*
+          node-version-file: .node-version
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Run unit tests
-        run: pnpm --filter @metacubexd/ui test:coverage
+        run: |
+          pnpm --filter @metacubexd/config-editor test
+          pnpm --filter @metacubexd/ui test:coverage
+
+      - name: Check types
+        run: pnpm typecheck

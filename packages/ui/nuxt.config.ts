@@ -12,6 +12,8 @@ const isDev = process.env.NODE_ENV === 'development'
 // noise, so the whole PWA/SW layer is disabled for that target.
 const pwaDisabled = process.env.MCXD_DISABLE_PWA === 'true'
 
+const appBaseURL = process.env.NUXT_APP_BASE_URL || '/'
+
 export default defineNuxtConfig({
   // Workspace move: the Nuxt app is the package root. Pin srcDir explicitly
   // so the legacy root layout (top-level pages/, components/, no app/ dir)
@@ -30,6 +32,13 @@ export default defineNuxtConfig({
     options: {
       hashMode: true,
     },
+  },
+
+  // Keep relative client assets for relocatable static/desktop builds, but
+  // mount Nitro at a URL path. Otherwise Nuxt 4.6 passes './' through to Nitro,
+  // which mounts at '/./' and prerenders "Redirecting..." as the SPA shell.
+  nitro: {
+    baseURL: appBaseURL === './' ? '/' : appBaseURL,
   },
 
   // Runtime config
@@ -65,7 +74,8 @@ export default defineNuxtConfig({
   pwa: {
     disable: pwaDisabled,
     registerType: 'prompt',
-    includeAssets: ['favicon.svg'],
+    // Top-level in @vite-pwa/nuxt v2 (removed from the generateSW options type).
+    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     manifest: {
       name: 'MetaCubeXD',
       short_name: 'MetaCubeXD',
@@ -82,7 +92,7 @@ export default defineNuxtConfig({
         },
       ],
     },
-    workbox: {
+    generateSW: {
       // Precache the built app shell only (relative paths keep subdirectory
       // deployments working). Backend API responses are dynamic and
       // cross-origin, so they are intentionally left uncached.
@@ -110,7 +120,6 @@ export default defineNuxtConfig({
         // of precache. Its chunk name contains "monaco".
         '**/monaco-*.js',
       ],
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       // Keep skipWaiting/clientsClaim off to prevent iOS Safari refresh loops (#1740).
       skipWaiting: false,
       clientsClaim: false,
@@ -180,7 +189,7 @@ export default defineNuxtConfig({
   app: {
     // Use relative paths for assets to support both root and subdirectory deployments
     // Can be overridden with NUXT_APP_BASE_URL environment variable
-    baseURL: process.env.NUXT_APP_BASE_URL || '/',
+    baseURL: appBaseURL,
     head: {
       charset: 'utf-8',
       viewport:
