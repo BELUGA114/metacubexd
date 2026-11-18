@@ -284,6 +284,83 @@ describe('e2E Page Tests', () => {
       ).resolves.toBe(true)
     })
 
+    it('persists independent group searches and intersects them with the global filter', async () => {
+      if (!browser || !context) throw new Error('Browser was not initialized')
+      const searchContext = await browser.newContext({
+        locale: 'en-US',
+        storageState: await context.storageState(),
+        viewport: { width: 390, height: 844 },
+      })
+      const searchPage = await searchContext.newPage()
+      const groupControl = (testId: string, group: string) =>
+        searchPage.locator(
+          `[data-testid="${testId}"][data-proxy-group="${group}"]`,
+        )
+      const nodes = (group: string) =>
+        searchPage.locator(`[data-proxy-group="${group}"][data-selected]`)
+
+      try {
+        await gotoAppPath(searchPage, '/proxies')
+        await searchPage.getByTitle('Card', { exact: true }).click()
+        await searchPage.getByTitle('Expand All', { exact: true }).click()
+        for (const [group, query] of [
+          ['Auto Select', 'Japan'],
+          ['Proxy', 'Singapore'],
+        ]) {
+          await groupControl('proxy-group-search-toggle', group!).click()
+          await groupControl('proxy-group-search', group!).fill(query!)
+          await expect.poll(() => nodes(group!).count()).toBe(1)
+          await expect(nodes(group!).innerText()).resolves.toContain(query!)
+        }
+        const globalSearch = searchPage.locator(
+          'input[role="searchbox"]:not([data-proxy-group])',
+        )
+        await globalSearch.fill('Hong Kong')
+        await expect.poll(() => nodes('Auto Select').count()).toBe(0)
+        await expect(
+          groupControl('proxy-group-search-empty', 'Auto Select').isVisible(),
+        ).resolves.toBe(true)
+        await globalSearch.fill('')
+        await expect.poll(() => nodes('Auto Select').count()).toBe(1)
+        await searchPage.reload({ waitUntil: 'networkidle' })
+        await expect(
+          groupControl('proxy-group-search', 'Auto Select').inputValue(),
+        ).resolves.toBe('Japan')
+        await expect(
+          groupControl('proxy-group-search', 'Proxy').inputValue(),
+        ).resolves.toBe('Singapore')
+        await expect(
+          groupControl('jump-to-current', 'Auto Select').isDisabled(),
+        ).resolves.toBe(true)
+        await expect(
+          searchPage.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).resolves.toBe(true)
+
+        await searchPage.setViewportSize({ width: 1024, height: 844 })
+        await groupControl('proxy-group-search', 'Auto Select').fill(
+          'Singapore',
+        )
+        await groupControl('jump-to-current', 'Auto Select').click()
+        await expect(
+          searchPage
+            .locator('[data-proxy-group="Auto Select"][data-selected="true"]')
+            .isVisible(),
+        ).resolves.toBe(true)
+        await groupControl('proxy-group-search-clear', 'Auto Select').click()
+        await expect.poll(() => nodes('Auto Select').count()).toBe(5)
+        await expect(
+          groupControl('proxy-group-search-toggle', 'Auto Select').isVisible(),
+        ).resolves.toBe(true)
+        await expect(
+          groupControl('proxy-group-search', 'Proxy').inputValue(),
+        ).resolves.toBe('Singapore')
+      } finally {
+        await searchContext.close()
+      }
+    })
+
     it('should jump to the selected proxy on desktop', async () => {
       const currentPage = await gotoAppPath(page, '/proxies')
       const jumpButton = currentPage.locator(

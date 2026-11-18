@@ -63,6 +63,8 @@ served from any static web server or from a reverse-proxy sub-path.
 
 - 📊 Real-time traffic monitoring and statistics
 - 🔄 Proxy group management with latency testing
+- Independent, saved node searches for each proxy group
+- IP information with automatic provider fallback
 - 📡 Connection tracking and management
 - 📋 Rule viewer with search functionality
 - 📝 Live log streaming
