@@ -13,6 +13,7 @@ import {
   connectionsToCSV,
   connectionsToJSON,
 } from '~/components/connections/connectionsExport'
+import { sortConnections } from '~/components/connections/connectionSort'
 import { connectionMatchesGlobalFilter } from '~/components/connections/globalFilter'
 import {
   chainMatchesQuickFilter,
@@ -23,7 +24,12 @@ import {
   closeSingleConnectionAPI,
 } from '~/composables/useApi'
 import { CONNECTIONS_TABLE_ACCESSOR_KEY } from '~/constants'
-import { formatIPv6, formatTimeFromNow, gapLeadingFlag } from '~/utils'
+import {
+  formatHostPort,
+  formatIPv6,
+  formatTimeFromNow,
+  gapLeadingFlag,
+} from '~/utils'
 import { renderTwoLineCell } from '~/utils/connectionCells'
 
 const { t, locale } = useI18n()
@@ -387,11 +393,17 @@ const allColumns: ConnectionColumn[] = [
     sortable: true,
     sortId: 'SourceIP',
     render: (conn: Connection) => {
-      const primary = `${getSourceLabel(conn)}:${conn.metadata.sourcePort}`
+      const primary = formatHostPort(
+        getSourceLabel(conn),
+        conn.metadata.sourcePort,
+      )
       const dest = getDestinationLabel(conn)
       const aux = dest ? `→ ${dest}` : ''
       const rawDest = getDestination(conn)
-      const rawSource = `${conn.metadata.sourceIP || t('inner')}:${conn.metadata.sourcePort}`
+      const rawSource = formatHostPort(
+        conn.metadata.sourceIP || t('inner'),
+        conn.metadata.sourcePort,
+      )
       return renderTwoLineCell(
         primary,
         aux,
@@ -402,7 +414,7 @@ const allColumns: ConnectionColumn[] = [
     renderText: (conn: Connection) => {
       const dest = getDestination(conn)
       const destText = dest ? ` → ${dest}` : ''
-      return `${getSourceIP(conn)}:${conn.metadata.sourcePort}${destText}`
+      return `${formatHostPort(getSourceIP(conn), conn.metadata.sourcePort)}${destText}`
     },
     groupValue: (conn: Connection) => getSourceIP(conn),
   },
@@ -509,48 +521,7 @@ const filteredConnections = computed(() => {
     )
   }
 
-  // Sort
-  const sorted = [...connections].sort((a, b) => {
-    let comparison = 0
-    switch (sortColumn.value) {
-      case 'ConnectTime':
-        comparison = new Date(a.start).getTime() - new Date(b.start).getTime()
-        break
-      case 'DlSpeed':
-        comparison = a.downloadSpeed - b.downloadSpeed
-        break
-      case 'UlSpeed':
-        comparison = a.uploadSpeed - b.uploadSpeed
-        break
-      case 'Download':
-        comparison = a.download - b.download
-        break
-      case 'Upload':
-        comparison = a.upload - b.upload
-        break
-      case 'Host':
-        comparison = (a.metadata.host || '').localeCompare(
-          b.metadata.host || '',
-        )
-        break
-      case 'Type':
-        comparison = a.metadata.type.localeCompare(b.metadata.type)
-        break
-      case 'Process':
-        comparison = (a.metadata.process || '').localeCompare(
-          b.metadata.process || '',
-        )
-        break
-      case 'SourceIP':
-        comparison = (a.metadata.sourceIP || '').localeCompare(
-          b.metadata.sourceIP || '',
-        )
-        break
-    }
-    return sortDesc.value ? -comparison : comparison
-  })
-
-  return sorted
+  return sortConnections(connections, sortColumn.value, sortDesc.value)
 })
 
 // Pagination
